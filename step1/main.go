@@ -1,10 +1,13 @@
-package step0
+package step1
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"fiber_workshop/step1/routes"
 )
 
-func Step0() {
+func Step1() {
 	app := fiber.New()
+
+	routes.Router(app)
 	app.Listen(":8000")
 }
