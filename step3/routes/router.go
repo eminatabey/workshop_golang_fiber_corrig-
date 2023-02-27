@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"fiber_workshop/step3/controllers"
 	"gorm.io/gorm"
+	"fmt"
 )
 
 type Users struct {
@@ -16,7 +17,7 @@ type Users struct {
 func Router(app *fiber.App, db *gorm.DB) {
 	app.Get("/home", controllers.Home)
 
-	app.Post("/login", func(c *fiber.Ctx) error {
+	app.Post("/register", func(c *fiber.Ctx) error {
 		tmp_user := &Users{}
 
 		if err := c.BodyParser(tmp_user); err != nil {
@@ -26,13 +27,16 @@ func Router(app *fiber.App, db *gorm.DB) {
 		db.AutoMigrate(&Users{})
 		var result bool
 
-		db.Raw("SELECT true FROM Users WHERE username = ? AND password = ?",
-			tmp_user.Username, tmp_user.Password).Scan(&result)
+		db.Raw("SELECT true FROM Users WHERE (username = ? AND password = ?) OR (username = ?)",
+			tmp_user.Username, tmp_user.Password, tmp_user.Username).Scan(&result)
 
-		if result == false {
+		if result == true {
+			fmt.Println("HERE")
 			return c.Status(401).SendString("Invalid username or password")
 		} else {
-			return c.Status(200).SendString("Logged in successfully")
+			fmt.Println("HERE2")
+			db.Create(&Users{Username: tmp_user.Username, Password: tmp_user.Password})
+			return c.Status(200).SendString("Account successfully created")
 		}
 	})
 }
